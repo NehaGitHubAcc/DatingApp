@@ -18,17 +18,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors();
 builder.Services.AddScoped<ITokenService, TokenService>(); // This registers the TokenService class as a service that can be injected into other classes that depend on ITokenService.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var tokenKey = builder.Configuration["TokenKey"] ?? throw new Exception("TokenKey is not configured in appsettings.json - Program.cs");
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey)),
-            ValidateIssuer = false,
-            ValidateAudience = false
-        };
-    });
+                .AddJwtBearer(options =>
+                {
+                    var tokenKey = builder.Configuration["TokenKey"] ?? throw new Exception("TokenKey is not configured in appsettings.json - Program.cs");
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false
+                    };
+                });
 
 var app = builder.Build();
 
