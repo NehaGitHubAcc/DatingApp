@@ -18,6 +18,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 builder.Services.AddCors();
 builder.Services.AddScoped<ITokenService, TokenService>(); // This registers the TokenService class as a service that can be injected into other classes that depend on ITokenService.
+builder.Services.AddScoped<IMemberRepository, MemberRepository>(); // This registers the MemberRepository class as a service that can be injected into other classes that depend on IMemberRepository.
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -42,4 +44,17 @@ app.UseAuthentication(); // This middleware is responsible for authenticating th
 app.UseAuthorization(); // This middleware is responsible for authorizing the user to access specific endpoints based on the user identity set by the authentication middleware and the authorization policies defined in the application. It checks if the user has the necessary permissions to access the requested resource and returns a 403 Forbidden response if the user is not authorized.
 app.MapControllers();
 
+using var scope = app.Services.CreateScope();
+var services = scope.ServiceProvider;
+try
+{
+    var context = services.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
+    await Seed.SeedUsers(context);
+}
+catch(Exception ex)
+{
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    logger.LogError(ex, "An error occurred during migration or seeding");
+}
 app.Run();

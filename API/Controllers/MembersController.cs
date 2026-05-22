@@ -1,29 +1,32 @@
 using API.Data;
 using API.Entities;
+using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
-    // [Authorize] // this will protect all the endpoints in this controller, only authenticated users can access these endpoints
-    public class MembersController(AppDbContext context): BaseApiController
+    [Authorize]
+    public class MembersController(IMemberRepository memberRepository): BaseApiController
     {
         [HttpGet] // localhost:5001/api/members
-        public async Task<ActionResult<IReadOnlyList<AppUser>>> GetMembers()
+        public async Task<ActionResult<IReadOnlyList<Member>>> GetMembers()
         {
-            var members = await context.Users.ToListAsync();
-            return members; // 200 + members
+            return Ok(await memberRepository.GetMembersAsync()); // 200 + list of members, the Ok() method is used to return a 200 status code along with the data
         }
 
-        //[AllowAnonymous] // this will allow anonymous users to access this endpoint, even though the controller has [Authorize] attribute
-        [Authorize] // this will allow only authenticated users to access this endpoint, even though the controller has [AllowAnonymous] attribute - not set on the controller, but set on the endpoint
         [HttpGet("{id}")] // localhost:5001/api/members/bob-id
-        public async Task<ActionResult<AppUser>> GetMember(string id)
+        public async Task<ActionResult<Member>> GetMember(string id)
         {
-            var member = await context.Users.FindAsync(id);
+            var member = await memberRepository.GetMemberByIdAsync(id);
             if (member == null) return NotFound(); // 404
             return member; // 200 + member
+        }
+
+        [HttpGet("{id}/photos")] // localhost:5001/api/members/bob-id/photos
+        public async Task<ActionResult<IReadOnlyList<Photo>>> GetMemberPhotos(string id)
+        {
+            return Ok(await memberRepository.GetPhotosForMemberIdAsync(id)); // 200 + photos
         }
     }
 }
